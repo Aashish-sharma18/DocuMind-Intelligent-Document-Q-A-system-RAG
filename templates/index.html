@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocuMind — Intelligent Document Q&A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── Background grid ── -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- ── Top Bar ── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo-mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="2" width="10" height="10" rx="2" fill="var(--accent)"/>
+          <rect x="16" y="2" width="10" height="10" rx="2" fill="var(--accent)" opacity="0.5"/>
+          <rect x="2" y="16" width="10" height="10" rx="2" fill="var(--accent)" opacity="0.5"/>
+          <rect x="16" y="16" width="10" height="10" rx="2" fill="var(--accent)" opacity="0.3"/>
+        </svg>
+      </div>
+      <span class="logo-text">DocuMind</span>
+      <span class="version-tag">RAG v1.0</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-indicator" id="status-dot">
+        <span class="dot"></span>
+        <span class="status-label" id="status-label">Initializing…</span>
+      </div>
+      <div class="stat-chip" id="vector-count">
+        <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 3v3l2 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span id="vectors-num">0</span> vectors
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ── -->
+  <main class="layout">
+
+    <!-- ── Left Panel: Documents ── -->
+    <aside class="panel panel-docs" id="docs-panel">
+      <div class="panel-header">
+        <span class="panel-title">Documents</span>
+        <span class="panel-count" id="doc-count">0 files</span>
+      </div>
+
+      <!-- Upload zone -->
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" multiple accept=".pdf,.txt" hidden />
+        <div class="upload-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M18 24V12M12 18l6-6 6 6" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="2" y="2" width="32" height="32" rx="6" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          </svg>
+        </div>
+        <p class="upload-label">Drop PDF or TXT files here</p>
+        <p class="upload-sub">or <button class="link-btn" id="browse-btn">browse files</button></p>
+        <div class="accepted-types">PDF · TXT · max 50 MB</div>
+      </div>
+
+      <!-- Progress bar (hidden by default) -->
+      <div class="progress-wrap" id="progress-wrap" style="display:none">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <p class="progress-label" id="progress-label">Processing…</p>
+      </div>
+
+      <!-- Document list -->
+      <div class="doc-list" id="doc-list">
+        <p class="empty-hint">No documents indexed yet.</p>
+      </div>
+
+      <!-- Ingest button -->
+      <button class="btn-secondary" id="reindex-btn" style="display:none">
+        ↺ Re-index all documents
+      </button>
+
+      <!-- Reset -->
+      <button class="btn-danger" id="reset-btn">
+        ✕ Clear index
+      </button>
+    </aside>
+
+    <!-- ── Center Panel: Chat ── -->
+    <section class="panel panel-chat">
+      <div class="chat-window" id="chat-window">
+        <!-- Welcome message -->
+        <div class="message-group system-message">
+          <div class="system-bubble">
+            <div class="sys-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 2L11.5 7H16L12 10.5L13.5 16L9 13L4.5 16L6 10.5L2 7H6.5L9 2Z" fill="var(--accent)" opacity="0.8"/>
+              </svg>
+            </div>
+            <div>
+              <p class="sys-title">DocuMind is ready.</p>
+              <p class="sys-body">Upload your documents on the left, then ask anything about their contents. The system uses semantic search and an LLM grounded strictly in your documents — no hallucinations.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-bar">
+        <div class="input-wrapper" id="input-wrapper">
+          <textarea
+            id="query-input"
+            class="query-input"
+            placeholder="Ask a question about your documents…"
+            rows="1"
+            maxlength="2000"
+          ></textarea>
+          <button class="send-btn" id="send-btn" disabled title="Send">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 9l14-7-7 14V10L2 9z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <p class="input-hint">Answers are grounded in your documents only.</p>
+      </div>
+    </section>
+
+    <!-- ── Right Panel: Context ── -->
+    <aside class="panel panel-context" id="context-panel">
+      <div class="panel-header">
+        <span class="panel-title">Retrieved Context</span>
+        <span class="panel-count" id="chunk-count">0 chunks</span>
+      </div>
+      <div class="context-list" id="context-list">
+        <p class="empty-hint">Context chunks from the last answer will appear here.</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

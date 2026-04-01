@@ -1,0 +1,33 @@
+# ── DocuMind — Python Dependencies ────────────────────────────────────────────
+# Install with: pip install -r requirements.txt
+
+# Web framework
+Flask==3.0.3
+Werkzeug==3.0.3
+gunicorn==22.0.0
+
+# LangChain core + loaders
+langchain==0.2.16
+langchain-community==0.2.16
+langchain-core==0.2.38
+
+# PDF parsing
+pypdf==4.3.1
+
+# Embeddings (HuggingFace)
+sentence-transformers==3.0.1
+transformers==4.44.2
+torch --index-url https://download.pytorch.org/whl/cpu
+huggingface-hub==0.24.6
+tokenizers==0.19.1
+
+# Vector store
+chromadb==0.5.5
+
+# HTTP requests (for LLM API calls)
+requests==2.32.3
+
+# Utilities
+python-dotenv==1.0.1
+tqdm==4.66.5
+numpy==1.26.4
