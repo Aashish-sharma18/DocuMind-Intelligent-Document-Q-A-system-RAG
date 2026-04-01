@@ -14,12 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies into a dedicated prefix
+# Copy and install Python dependencies (into default site-packages)
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install --prefix=/install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# Pre-download the embedding model so the container starts instantly
+# Pre-download the embedding model (now importable since packages are on default path)
 RUN python -c "from sentence_transformers import SentenceTransformer; \
                SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
@@ -29,9 +29,9 @@ FROM python:3.11-slim AS runtime
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /install /usr/local
-# Copy pre-downloaded HuggingFace models cache
+# Copy installed packages and pre-downloaded model cache from builder
+COPY --from=builder /usr/local/lib /usr/local/lib
+COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /root/.cache /root/.cache
 
 # Copy application source
